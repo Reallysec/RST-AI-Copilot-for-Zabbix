@@ -180,8 +180,7 @@ Content Packs and misuse of Licenses, to verify usage under Section 8, and to
 provide support. Reallysec does not sell this data or use it for advertising.
 Reallysec keeps it while your License is active and for up to two (2) years
 after it ends, or longer only where the law requires, and then deletes or
-anonymizes it. Deleted data may remain in encrypted backups for up to
-thirty-five (35) days before it is overwritten. Where any of this data is personal information, Reallysec
+anonymizes it. Where any of this data is personal information, Reallysec
 handles it as described in its privacy notice at https://reallysec.com/privacy-policy.
 
 ### 6.4 Language-Model Providers
@@ -200,9 +199,9 @@ information protection and cross-border data transfer rules.**
 channel or other destination you configure is outside mainland China, you are
 responsible for any security assessment, standard contract, certification,
 consent or other requirement that applies to sending data to it.** Reallysec
-operates the license service, including its encrypted daily backups, in the
-Hong Kong Special Administrative Region (outside mainland China), and GitHub
-Releases is operated by GitHub outside mainland China. Only the data listed in
+operates the license service in the Hong Kong Special Administrative Region of
+China (outside mainland China), and GitHub Releases is operated by GitHub outside
+mainland China. Only the data listed in
 Section 6.2 is sent to them. An installation without a License or activated
 offline sends nothing to the license service, and an installation activated
 offline does not contact GitHub Releases.
@@ -611,8 +610,7 @@ Reallysec Information Technology Ltd.，「版权人」）与安装或使用本�
 校验许可、执行许可的节点数及用户数限制、发现被篡改的版本和内容包以及许可的滥用、
 依第八条核验用量以及提供支持。版权人不出售该等数据，也不将其用于广告。版权人在
 您的许可有效期间及许可终止后至多两（2）年内保存该等数据，法律要求更长期限的除外，
-期满后予以删除或匿名化处理；已删除的数据可能在加密备份中最多再保留三十五（35）日，
-随后被覆盖。该等数据中属于个人信息的部分，版权人按照其隐私政策
+期满后予以删除或匿名化处理。该等数据中属于个人信息的部分，版权人按照其隐私政策
 （https://reallysec.com/privacy-policy）处理。
 
 ### （四）大模型服务商
@@ -626,8 +624,8 @@ Reallysec Information Technology Ltd.，「版权人」）与安装或使用本�
 
 **您的数据发送至何处由您决定。您配置的大模型服务商、通知渠道或其他目的地位于中国
 境外的，向其发送数据所适用的安全评估、标准合同、认证、个人同意或其他要求，由您
-负责履行。** 许可服务由版权人运营，连同其每日加密备份部署在中国香港特别行政区（中国大陆境外）；GitHub Releases 由 GitHub
-在中国境外运营。向其发送的数据仅限于本条第（二）款所列数据。未使用许可或离线激活
+负责履行。** 许可服务由版权人运营，部署在中国香港特别行政区（中国大陆境外）；GitHub Releases 由 GitHub
+在中国大陆境外运营。向其发送的数据仅限于本条第（二）款所列数据。未使用许可或离线激活
 的安装实例不向许可服务发送任何数据，离线激活的安装实例也不访问 GitHub Releases。
 
 ### （六）支持访问
