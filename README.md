@@ -13,7 +13,7 @@
 <p align="center">
   <a href="https://github.com/reallysec/RST-Zabbix-AI-Copilot/releases"><img src="https://img.shields.io/github/v/release/reallysec/RST-Zabbix-AI-Copilot?label=release&color=D40000" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/free-Community_Edition-1BA9F5" alt="Free Community Edition">
-  <img src="https://img.shields.io/badge/Zabbix-6.0_%7C_7.0-D40000" alt="Zabbix 6.0 and 7.0">
+  <img src="https://img.shields.io/badge/Zabbix-6.0%E2%80%937.4-D40000" alt="Zabbix 6.0 to 7.4">
   <img src="https://img.shields.io/badge/deploy-Docker-2496ED?logo=docker&logoColor=white" alt="Deploy with Docker">
   <a href="https://reallysec.com/en/docs/zabbix-ai-copilot"><img src="https://img.shields.io/badge/docs-reallysec.com-343741" alt="Documentation"></a>
 </p>
@@ -24,7 +24,7 @@
 
 ## Why RST AI Copilot for Zabbix
 
-- **Works with the Zabbix you have.** One Docker gateway next to your existing Zabbix 6.0 or 7.0 server. No new data store, no agents; it talks to the Zabbix JSON-RPC API with a token you control.
+- **Works with the Zabbix you have.** One Docker gateway next to your existing Zabbix server (6.0 to 7.4). No new data store, no agents; it talks to the Zabbix JSON-RPC API with a token you control.
 - **Read-only first.** Queries go through a read-only API whitelist. Anything that changes Zabbix (acknowledging a problem, creating a trigger) is an explicit operator action, and generated triggers are created disabled. A host-group whitelist bounds what the model may see.
 - **Your data stays in your network.** Field masking runs before anything reaches the model. Point it at Volcengine Ark, any OpenAI-compatible endpoint, or a local vLLM / Ollama for fully offline operation.
 - **Every step is accountable.** Each login, query, model call and settings change is an audit event you can search.
@@ -107,7 +107,7 @@ Details and pricing: [editions](https://reallysec.com/en/docs/zabbix-ai-copilot/
 
 | Component | Supported |
 |---|---|
-| Zabbix | 6.0 LTS and 7.0 LTS (JSON-RPC API with an API token) |
+| Zabbix | 6.0 LTS, 6.4, 7.0 LTS, 7.2 and 7.4 (JSON-RPC API with an API token) |
 | LLM endpoint | Volcengine Ark, any OpenAI-compatible API, self-hosted vLLM / Ollama |
 | Host | Linux with Docker Engine 24+ and Docker Compose v2 |
 

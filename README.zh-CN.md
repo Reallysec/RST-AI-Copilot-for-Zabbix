@@ -13,7 +13,7 @@
 <p align="center">
   <a href="https://github.com/reallysec/RST-Zabbix-AI-Copilot/releases"><img src="https://img.shields.io/github/v/release/reallysec/RST-Zabbix-AI-Copilot?label=release&color=D40000" alt="最新版本"></a>
   <img src="https://img.shields.io/badge/免费-社区版-1BA9F5" alt="免费社区版">
-  <img src="https://img.shields.io/badge/Zabbix-6.0_%7C_7.0-D40000" alt="Zabbix 6.0 和 7.0">
+  <img src="https://img.shields.io/badge/Zabbix-6.0%E2%80%937.4-D40000" alt="Zabbix 6.0 至 7.4">
   <img src="https://img.shields.io/badge/部署-Docker-2496ED?logo=docker&logoColor=white" alt="Docker 部署">
   <a href="https://reallysec.com/docs/zabbix-ai-copilot"><img src="https://img.shields.io/badge/文档-reallysec.com-343741" alt="文档"></a>
 </p>
@@ -24,7 +24,7 @@
 
 ## 为什么选 RST AI Copilot for Zabbix
 
-- **直接用你现有的 Zabbix。** 在现有 Zabbix 6.0 / 7.0 旁边起一个 Docker 网关即可。不新增数据存储、不装 agent，通过你掌控的 API token 调用 Zabbix JSON-RPC。
+- **直接用你现有的 Zabbix。** 在现有 Zabbix（6.0 至 7.4）旁边起一个 Docker 网关即可。不新增数据存储、不装 agent，通过你掌控的 API token 调用 Zabbix JSON-RPC。
 - **只读优先。** 查询只走只读 API 白名单。会改动 Zabbix 的操作（确认问题、创建触发器）都由运维人员显式发起，生成的触发器以禁用状态创建、审核后再启用。主机组白名单限定模型能看到的范围。
 - **数据留在你的网络里。** 发给模型之前先做字段脱敏。模型可以用火山方舟、任意 OpenAI 兼容端点，也可以用本地 vLLM / Ollama 完全离线运行。
 - **每一步都可追溯。** 每次登录、查询、模型调用和设置变更都是可检索的审计事件。
@@ -107,7 +107,7 @@ cd RST-Zabbix-AI-Copilot-<版本> && ./deploy.sh
 
 | 组件 | 支持情况 |
 |---|---|
-| Zabbix | 6.0 LTS 和 7.0 LTS（JSON-RPC API，使用 API token） |
+| Zabbix | 6.0 LTS、6.4、7.0 LTS、7.2 和 7.4（JSON-RPC API，使用 API token） |
 | 大模型端点 | 火山方舟、任意 OpenAI 兼容 API、自建 vLLM / Ollama |
 | 主机 | Linux，Docker Engine 24+ 和 Docker Compose v2 |
 
