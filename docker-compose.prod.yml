@@ -1,0 +1,118 @@
+# Hardened production stack — Gateway behind a Caddy reverse proxy that
+# terminates TLS and enforces Basic Auth login.
+#
+# This deployment connects to the CUSTOMER'S EXISTING Zabbix 6.0/7.0 — it does
+# NOT run Zabbix. Only the gateway + Caddy are started here; set ZABBIX_URL
+# (and a ZABBIX_TOKEN) in .env to point at the customer server.
+#   - Need a self-contained PoC WITH bundled Zabbix instead? Use the base stack
+#     at docker-compose.yml (ships Zabbix 7.0 + Postgres + agent for testing).
+#
+# Only Caddy (:443) is exposed on the host. The gateway sits on the internal
+# Docker network and reaches the customer Zabbix over their network.
+#
+# Setup — run ./deploy.sh. It loads the bundled image tar, collects the config,
+# writes .env and starts the stack.
+#
+# Manual path — the delivery bundle ships PREBUILT images and no Dockerfile:
+#   1. docker load -i RST-Zabbix-AI-Copilot-images-<version>.tar
+#      (from a source checkout instead: docker build -t rst-zabbix-ai-copilot-gateway:<tag> .)
+#   2. cp .env.example .env  — fill LLM_*, RST_GATEWAY_SHARED_SECRET,
+#      RST_ADMIN_TOKEN, and the Zabbix block (ZABBIX_URL + ZABBIX_TOKEN).
+#   3. create the license fingerprint anchor (once; never regenerate):
+#        mkdir -p state && openssl rand -hex 16 > state/machine-id
+#   4. generate the analyst login password hash:
+#        docker run --rm caddy caddy hash-password --plaintext 'YOUR_PASSWORD'
+#      put it in .env as CADDY_BASIC_AUTH_HASH (double every $ as $$).
+#   5. docker compose -f docker-compose.prod.yml up -d
+#   6. open https://<CADDY_SITE_ADDRESS>/v2/
+#
+# The gateway must stay behind Caddy (see docs/SECURITY.md): it publishes no
+# port, and only Caddy's forwarded headers are trusted.
+
+services:
+  gateway:
+    # No build: — the delivery bundle carries prebuilt images and no Dockerfile.
+    # Tag is installer-managed: deploy/rst-update.sh writes GATEWAY_IMAGE_TAG into
+    # .env on a health-gated release install / rollback. The default here is the
+    # release version source of truth (scripts/build-release.sh reads it).
+    image: rst-zabbix-ai-copilot-gateway:${GATEWAY_IMAGE_TAG:-2.0.0}
+    container_name: rst-zabbix-gateway
+    restart: unless-stopped
+    # Resource ceiling so one runaway request / memory leak can't starve the
+    # host. Override in .env per host size.
+    deploy:
+      resources:
+        limits:
+          cpus: "${RST_GATEWAY_CPUS:-2}"
+          memory: ${RST_GATEWAY_MEM:-2g}
+    environment:
+      # ── Customer Zabbix (REQUIRED — this stack ships no Zabbix) ──
+      - ZABBIX_URL=${ZABBIX_URL:?set ZABBIX_URL to the customer's Zabbix JSON-RPC endpoint (…/api_jsonrpc.php) in .env}
+      # Prefer a long-lived API token; user/password are the fallback.
+      - ZABBIX_TOKEN=${ZABBIX_TOKEN:-}
+      - ZABBIX_USER=${ZABBIX_USER:-}
+      - ZABBIX_PASSWORD=${ZABBIX_PASSWORD:-}
+      # Browser deep-links ("在 Zabbix 中打开"). Blank = reuse ZABBIX_URL origin.
+      - ZABBIX_PUBLIC_URL=${ZABBIX_PUBLIC_URL:-}
+      # Restrict which host groups are queryable (security control — leave empty
+      # to allow all). Set to the customer's monitored groups.
+      - RST_INDEX_WHITELIST=${RST_INDEX_WHITELIST:-}
+      # ── LLM provider (REQUIRED) ──
+      - LLM_API_KEY=${LLM_API_KEY:?set LLM_API_KEY in .env}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://ark.cn-beijing.volces.com/api/v3}
+      - LLM_MODEL=${LLM_MODEL:?set LLM_MODEL in .env}
+      # ── Auth — required in this stack. Caddy injects the shared secret upstream. ──
+      - RST_GATEWAY_SHARED_SECRET=${RST_GATEWAY_SHARED_SECRET:?set RST_GATEWAY_SHARED_SECRET in .env}
+      - RST_ADMIN_TOKEN=${RST_ADMIN_TOKEN:?set RST_ADMIN_TOKEN in .env}
+      # ── License ──
+      - RST_LICENSE_PUBLIC_KEY_PATH=/app/keys/license_public.pem
+      - LICENSE_SERVER_URL=${LICENSE_SERVER_URL:-https://license.reallysec.com}
+      - RST_TRIAL_DAILY_LIMIT=${RST_TRIAL_DAILY_LIMIT:-200}
+      # ── Online update (content packs + image releases) ──
+      # Running version: the heartbeat reports it, and release_store only offers
+      # a release newer than this. Follows GATEWAY_IMAGE_TAG (rst-update.sh bumps it).
+      - APP_VERSION=${APP_VERSION:-${GATEWAY_IMAGE_TAG:-2.0.0}}
+      # Release staging — a HOST bind mount (see volumes) so the host-side
+      # deploy/rst-update.sh reads what the gateway downloaded and verified.
+      - RST_RELEASE_DIR=/app/release
+      # ── Audit (security product → recommend on) ──
+      - RST_AUDIT_ENABLED=${RST_AUDIT_ENABLED:-true}
+      - RST_MASKING_MODE=${RST_MASKING_MODE:-}
+    volumes:
+      # Writable runtime state (settings / providers / dashboards / inspection /
+      # quota / audit.db / license.key / server_guid) — persists across restarts.
+      - gateway_state:/app/state
+      # License hardware-fingerprint anchor. slim images have an empty
+      # /etc/machine-id and the docker veth MAC is rejected as random, so the
+      # SDK needs a stable file. Generate ONCE with
+      #   openssl rand -hex 16 > state/machine-id
+      # and NEVER regenerate it — a new file = new hardware = re-activation.
+      - ./state/machine-id:/etc/machine-id:ro
+      # Release staging shared with the host installer: release_store (in the
+      # container) stages verified downloads here; rst-update.sh (on the host,
+      # default RELEASE_DIR=./release) installs from it.
+      - ./release:/app/release
+
+  caddy:
+    image: caddy:2
+    container_name: rst-zabbix-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - CADDY_SITE_ADDRESS=${CADDY_SITE_ADDRESS:?set CADDY_SITE_ADDRESS to the hostname or IP analysts use}
+      - CADDY_BASIC_AUTH_USER=${CADDY_BASIC_AUTH_USER:-analyst}
+      - CADDY_BASIC_AUTH_HASH=${CADDY_BASIC_AUTH_HASH:?run docker run --rm caddy caddy hash-password --plaintext YOURPASS and put it in .env}
+      - RST_GATEWAY_SHARED_SECRET=${RST_GATEWAY_SHARED_SECRET:?set RST_GATEWAY_SHARED_SECRET in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - gateway
+
+volumes:
+  gateway_state:
+  caddy_data:
+  caddy_config:

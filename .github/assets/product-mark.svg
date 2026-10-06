@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <title>RST AI Copilot for Zabbix</title>
+  <rect width="128" height="128" rx="28" fill="#1C1E23"/>
+  <g stroke="#5B8DEF" stroke-width="6" stroke-linecap="round">
+    <path d="M40 44L64 84M88 44L64 84M40 44H88"/>
+  </g>
+  <circle cx="40" cy="44" r="11" fill="#2EC4A6"/>
+  <circle cx="88" cy="44" r="11" fill="#F5B83D"/>
+  <circle cx="64" cy="84" r="11" fill="#EF5B5B"/>
+  <g transform="translate(92 14)" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/>
+  </g>
+</svg>
