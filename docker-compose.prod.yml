@@ -1,5 +1,5 @@
 # Hardened production stack — Gateway behind a Caddy reverse proxy that
-# terminates TLS and enforces Basic Auth login.
+# terminates TLS. Login is the gateway's own (/v2 login page, named accounts).
 #
 # This deployment connects to the CUSTOMER'S EXISTING Zabbix 6.0/7.0 — it does
 # NOT run Zabbix. Only the gateway + Caddy are started here; set ZABBIX_URL
@@ -20,9 +20,9 @@
 #      RST_ADMIN_TOKEN, and the Zabbix block (ZABBIX_URL + ZABBIX_TOKEN).
 #   3. create the license fingerprint anchor (once; never regenerate):
 #        mkdir -p state && openssl rand -hex 16 > state/machine-id
-#   4. generate the analyst login password hash:
-#        docker run --rm caddy caddy hash-password --plaintext 'YOUR_PASSWORD'
-#      put it in .env as CADDY_BASIC_AUTH_HASH (double every $ as $$).
+#   4. generate the admin login password hash:
+#        docker run --rm rst-zabbix-ai-copilot-gateway:<tag> python -m backend.session_auth 'YOUR_PASSWORD'
+#      put it in .env as RST_ADMIN_PASSWORD_HASH (double every $ as $$).
 #   5. docker compose -f docker-compose.prod.yml up -d
 #   6. open https://<CADDY_SITE_ADDRESS>/v2/
 #
@@ -35,7 +35,7 @@ services:
     # Tag is installer-managed: deploy/rst-update.sh writes GATEWAY_IMAGE_TAG into
     # .env on a health-gated release install / rollback. The default here is the
     # release version source of truth (scripts/build-release.sh reads it).
-    image: rst-zabbix-ai-copilot-gateway:${GATEWAY_IMAGE_TAG:-2.0.0}
+    image: rst-zabbix-ai-copilot-gateway:${GATEWAY_IMAGE_TAG:-2.0.1}
     container_name: rst-zabbix-gateway
     restart: unless-stopped
     # Resource ceiling so one runaway request / memory leak can't starve the
@@ -64,6 +64,11 @@ services:
       # ── Auth — required in this stack. Caddy injects the shared secret upstream. ──
       - RST_GATEWAY_SHARED_SECRET=${RST_GATEWAY_SHARED_SECRET:?set RST_GATEWAY_SHARED_SECRET in .env}
       - RST_ADMIN_TOKEN=${RST_ADMIN_TOKEN:?set RST_ADMIN_TOKEN in .env}
+      # In-app login (named accounts, roles, EULA consent) is always on here.
+      # Empty hash = the shipped admin / Admin@123, which is published: the
+      # gateway refuses it from any remote client until a hash is set.
+      - RST_LOGIN_ENABLED=true
+      - RST_ADMIN_PASSWORD_HASH=${RST_ADMIN_PASSWORD_HASH:-}
       # ── License ──
       - RST_LICENSE_PUBLIC_KEY_PATH=/app/keys/license_public.pem
       - LICENSE_SERVER_URL=${LICENSE_SERVER_URL:-https://license.reallysec.com}
@@ -71,13 +76,21 @@ services:
       # ── Online update (content packs + image releases) ──
       # Running version: the heartbeat reports it, and release_store only offers
       # a release newer than this. Follows GATEWAY_IMAGE_TAG (rst-update.sh bumps it).
-      - APP_VERSION=${APP_VERSION:-${GATEWAY_IMAGE_TAG:-2.0.0}}
+      - APP_VERSION=${APP_VERSION:-${GATEWAY_IMAGE_TAG:-2.0.1}}
       # Release staging — a HOST bind mount (see volumes) so the host-side
       # deploy/rst-update.sh reads what the gateway downloaded and verified.
       - RST_RELEASE_DIR=/app/release
       # ── Audit (security product → recommend on) ──
       - RST_AUDIT_ENABLED=${RST_AUDIT_ENABLED:-true}
       - RST_MASKING_MODE=${RST_MASKING_MODE:-}
+    # `environment` only lists keys that need a default or a required check. Every
+    # other key in .env (RST_CONTENT_AUTO_APPLY, RST_TIMEZONE, LLM_TIMEOUT_S,
+    # rate limits, RBAC groups ...) reaches the gateway through this line; without
+    # it, a key set in .env per the docs silently does nothing (compose only uses
+    # .env for interpolation).
+    env_file:
+      - path: .env
+        required: false
     volumes:
       # Writable runtime state (settings / providers / dashboards / inspection /
       # quota / audit.db / license.key / server_guid) — persists across restarts.
@@ -102,8 +115,8 @@ services:
       - "443:443"
     environment:
       - CADDY_SITE_ADDRESS=${CADDY_SITE_ADDRESS:?set CADDY_SITE_ADDRESS to the hostname or IP analysts use}
-      - CADDY_BASIC_AUTH_USER=${CADDY_BASIC_AUTH_USER:-analyst}
-      - CADDY_BASIC_AUTH_HASH=${CADDY_BASIC_AUTH_HASH:?run docker run --rm caddy caddy hash-password --plaintext YOURPASS and put it in .env}
+      # SNI fallback for bare-IP access (see Caddyfile); one name only.
+      - CADDY_DEFAULT_SNI=${CADDY_DEFAULT_SNI:-${CADDY_SITE_ADDRESS}}
       - RST_GATEWAY_SHARED_SECRET=${RST_GATEWAY_SHARED_SECRET:?set RST_GATEWAY_SHARED_SECRET in .env}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
