@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/reallysec/RST-Zabbix-AI-Copilot/releases"><img src="https://img.shields.io/github/v/release/reallysec/RST-Zabbix-AI-Copilot?label=release&color=D40000" alt="Latest release"></a>
+  <a href="https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/releases"><img src="https://img.shields.io/github/v/release/reallysec/RST-AI-Copilot-for-Zabbix?label=release&color=D40000" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/free-Community_Edition-1BA9F5" alt="Free Community Edition">
   <img src="https://img.shields.io/badge/Zabbix-6.0%E2%80%937.4-D40000" alt="Zabbix 6.0 to 7.4">
   <img src="https://img.shields.io/badge/deploy-Docker-2496ED?logo=docker&logoColor=white" alt="Deploy with Docker">
@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <b>English</b> · <a href="README.zh-CN.md">简体中文</a> · <a href="https://reallysec.com/en/docs/zabbix-ai-copilot">Docs</a> · <a href="https://github.com/reallysec/RST-Zabbix-AI-Copilot/releases">Download</a> · <a href="https://github.com/reallysec/RST-Zabbix-AI-Copilot/issues">Report an issue</a>
+  <b>English</b> · <a href="README.zh-CN.md">简体中文</a> · <a href="https://reallysec.com/en/docs/zabbix-ai-copilot">Docs</a> · <a href="https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/releases">Download</a> · <a href="https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/issues">Report an issue</a>
 </p>
 
 ## Why RST AI Copilot for Zabbix
@@ -36,17 +36,17 @@ You need a Linux host with Docker Engine 24+ and Compose v2, network access to t
 Install with one command:
 
 ```bash
-curl -fsSL https://github.com/reallysec/RST-Zabbix-AI-Copilot/releases/latest/download/install.sh | sudo bash
+curl -fsSL https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/releases/latest/download/install.sh | sudo bash
 ```
 
-The script downloads the latest bundle, checks it against the signed release manifest, unpacks it into `/opt/rst-zabbix-ai-copilot` and runs `deploy.sh`. There is one bundle for every edition: without a licence it runs as the free Community Edition, and activating a licence on the **License** page unlocks Professional or Enterprise in place. On an offline host, run it elsewhere with `--download-only` and carry the bundle over.
+The script downloads the latest bundle, checks it against the signed release manifest, unpacks it into `/opt/rst-ai-copilot-for-zabbix` and runs `deploy.sh`. There is one bundle for every edition: without a licence it runs as the free Community Edition, and activating a licence on the **License** page unlocks Professional or Enterprise in place. On an offline host, run it elsewhere with `--download-only` and carry the bundle over.
 
-Or download the bundle from [Releases](https://github.com/reallysec/RST-Zabbix-AI-Copilot/releases) yourself:
+Or download the bundle from [Releases](https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/releases) yourself:
 
 ```bash
-sha256sum -c RST-Zabbix-AI-Copilot-<version>.tar.gz.sha256
-tar xzf RST-Zabbix-AI-Copilot-<version>.tar.gz
-cd RST-Zabbix-AI-Copilot-<version> && ./deploy.sh
+sha256sum -c RST-AI-Copilot-for-Zabbix-<version>.tar.gz.sha256
+tar xzf RST-AI-Copilot-for-Zabbix-<version>.tar.gz
+cd RST-AI-Copilot-for-Zabbix-<version> && ./deploy.sh
 ```
 
 `deploy.sh` loads the images, generates secrets and the host fingerprint, asks for the LLM and Zabbix endpoints, and starts the stack behind Caddy TLS. The gateway is never exposed directly: Caddy is the only service that listens on the host. Open `https://<hostname-or-IP>/v2/` when it reports healthy.
@@ -56,6 +56,8 @@ By default the certificate comes from Caddy's internal CA, so the browser warns 
 **Activate a licence** (skip for Community): open **License** as admin. Online: paste the licence key and activate; it binds to this host (needs outbound `license.reallysec.com:443`). Offline (Enterprise): copy the host fingerprint, get a licence file for it from [console.reallysec.com](https://console.reallysec.com) or sales, and import it.
 
 **Updates**: the gateway checks this repository's Releases for a newer signed version (Settings). Downloading stages it; `sudo ./deploy/rst-update.sh` on the host installs it with a health check and automatic rollback.
+
+**Upgrading from 2.0.1 or earlier**: 2.0.2 renamed the bundle, image and containers, so older gateways cannot update online to it. Upgrade once by hand: run the install command above (an existing `/opt/rst-zabbix-ai-copilot` install is upgraded in place), or unpack the bundle into the existing directory and run `./deploy.sh`, keeping `.env`. Stay in the existing directory: it names the data volumes and holds the licence's host fingerprint. Online updates work again afterwards.
 
 ## Features
 
@@ -113,7 +115,7 @@ Details and pricing: [editions](https://reallysec.com/en/docs/zabbix-ai-copilot/
 
 ## Support
 
-- **Questions and bugs**: open an [issue](https://github.com/reallysec/RST-Zabbix-AI-Copilot/issues).
+- **Questions and bugs**: open an [issue](https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/issues).
 - **Security vulnerabilities**: do not open a public issue; follow the [security policy](SECURITY.md).
 
 ## Licensing

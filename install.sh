@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One-command installer for RST AI Copilot for Zabbix.
 #
-#   curl -fsSL https://github.com/reallysec/RST-Zabbix-AI-Copilot/releases/latest/download/install.sh | sudo bash
+#   curl -fsSL https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/releases/latest/download/install.sh | sudo bash
 #
 # Options: --version <x.y.z> (default: the newest signed release)   --dir <path> (default below)
 #          --mirror github|cn   github: GitHub Releases only; cn: China mirror (Tencent COS) first,
@@ -20,15 +20,21 @@
 set -euo pipefail
 
 PRODUCT="RST AI Copilot for Zabbix"
-STEM="RST-Zabbix-AI-Copilot"                     # archive: <STEM>-<version>.tar.gz
-GH_REPO="reallysec/RST-Zabbix-AI-Copilot"
-DIR="/opt/rst-zabbix-ai-copilot"
-# China mirror (Tencent COS): <base>/rst-zabbix-ai-copilot/<version>/<file> and .../latest/VERSION.
+STEM="RST-AI-Copilot-for-Zabbix"                     # archive: <STEM>-<version>.tar.gz
+GH_REPO="reallysec/RST-AI-Copilot-for-Zabbix"
+DIR="/opt/rst-ai-copilot-for-zabbix"
+# Installs from before the 2.0.2 rename live here. Keep upgrading them in place: the
+# directory names the compose project (so the data volumes) and holds state/machine-id
+# (the licence's hardware fingerprint), so a fresh directory would look like data loss
+# and need the licence activated again. --dir still wins. RST_LEGACY_DIR is for the tests.
+LEGACY_DIR="${RST_LEGACY_DIR:-/opt/rst-zabbix-ai-copilot}"
+[ -f "$LEGACY_DIR/.env" ] && DIR="$LEGACY_DIR"
+# China mirror (Tencent COS): <base>/rst-ai-copilot-for-zabbix/<version>/<file> and .../latest/VERSION.
 # The bucket does not exist yet — this default is a PLACEHOLDER. Until it is replaced (or
 # RST_COS_BASE is set) the mirror is skipped instead of trying a bogus host.
 COS_PLACEHOLDER="https://rst-releases-XXXXXXXX.cos.ap-shanghai.myqcloud.com"
 COS_BASE="${RST_COS_BASE:-$COS_PLACEHOLDER}"
-COS_PREFIX="rst-zabbix-ai-copilot"
+COS_PREFIX="rst-ai-copilot-for-zabbix"
 # GitHub endpoints; overridable so the tests can run offline against file:// trees.
 # Nothing here is trusted: only the signature below is.
 GH_BASE="${RST_GITHUB_BASE:-https://github.com/$GH_REPO/releases}"
@@ -225,7 +231,7 @@ say "== $PRODUCT $VERSION -> $DIR"
 # The archive carries no .env and no state/, so an existing install keeps both. Old image
 # tars are removed first so deploy.sh loads only this version's images.
 mkdir -p "$DIR"
-rm -f "$DIR"/"$STEM"-images-*.tar
+rm -f "$DIR"/"$STEM"-images-*.tar "$DIR"/RST-Zabbix-AI-Copilot-images-*.tar   # + pre-2.0.2 leftovers
 tar xzf "$ARCHIVE" -C "$DIR" --strip-components=1
 say "== unpacked; starting deploy.sh"
 cd "$DIR"

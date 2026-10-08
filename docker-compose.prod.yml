@@ -14,14 +14,14 @@
 # writes .env and starts the stack.
 #
 # Manual path — the delivery bundle ships PREBUILT images and no Dockerfile:
-#   1. docker load -i RST-Zabbix-AI-Copilot-images-<version>.tar
-#      (from a source checkout instead: docker build -t rst-zabbix-ai-copilot-gateway:<tag> .)
+#   1. docker load -i RST-AI-Copilot-for-Zabbix-images-<version>.tar
+#      (from a source checkout instead: docker build -t rst-ai-copilot-for-zabbix-gateway:<tag> .)
 #   2. cp .env.example .env  — fill LLM_*, RST_GATEWAY_SHARED_SECRET,
 #      RST_ADMIN_TOKEN, and the Zabbix block (ZABBIX_URL + ZABBIX_TOKEN).
 #   3. create the license fingerprint anchor (once; never regenerate):
 #        mkdir -p state && openssl rand -hex 16 > state/machine-id
 #   4. generate the admin login password hash:
-#        docker run --rm rst-zabbix-ai-copilot-gateway:<tag> python -m backend.session_auth 'YOUR_PASSWORD'
+#        docker run --rm rst-ai-copilot-for-zabbix-gateway:<tag> python -m backend.session_auth 'YOUR_PASSWORD'
 #      put it in .env as RST_ADMIN_PASSWORD_HASH (double every $ as $$).
 #   5. docker compose -f docker-compose.prod.yml up -d
 #   6. open https://<CADDY_SITE_ADDRESS>/v2/
@@ -35,8 +35,8 @@ services:
     # Tag is installer-managed: deploy/rst-update.sh writes GATEWAY_IMAGE_TAG into
     # .env on a health-gated release install / rollback. The default here is the
     # release version source of truth (scripts/build-release.sh reads it).
-    image: rst-zabbix-ai-copilot-gateway:${GATEWAY_IMAGE_TAG:-2.0.1}
-    container_name: rst-zabbix-gateway
+    image: rst-ai-copilot-for-zabbix-gateway:${GATEWAY_IMAGE_TAG:-2.0.2}
+    container_name: rst-ai-copilot-for-zabbix-gateway
     restart: unless-stopped
     # Resource ceiling so one runaway request / memory leak can't starve the
     # host. Override in .env per host size.
@@ -72,11 +72,10 @@ services:
       # ── License ──
       - RST_LICENSE_PUBLIC_KEY_PATH=/app/keys/license_public.pem
       - LICENSE_SERVER_URL=${LICENSE_SERVER_URL:-https://license.reallysec.com}
-      - RST_TRIAL_DAILY_LIMIT=${RST_TRIAL_DAILY_LIMIT:-200}
       # ── Online update (content packs + image releases) ──
       # Running version: the heartbeat reports it, and release_store only offers
       # a release newer than this. Follows GATEWAY_IMAGE_TAG (rst-update.sh bumps it).
-      - APP_VERSION=${APP_VERSION:-${GATEWAY_IMAGE_TAG:-2.0.1}}
+      - APP_VERSION=${APP_VERSION:-${GATEWAY_IMAGE_TAG:-2.0.2}}
       # Release staging — a HOST bind mount (see volumes) so the host-side
       # deploy/rst-update.sh reads what the gateway downloaded and verified.
       - RST_RELEASE_DIR=/app/release
@@ -88,12 +87,14 @@ services:
     # rate limits, RBAC groups ...) reaches the gateway through this line; without
     # it, a key set in .env per the docs silently does nothing (compose only uses
     # .env for interpolation).
+    # Short form on purpose: the long `path:` / `required:` form needs Compose
+    # 2.24+, and older hosts would fail to parse this file on an online update.
+    # deploy.sh always writes .env.
     env_file:
-      - path: .env
-        required: false
+      - .env
     volumes:
       # Writable runtime state (settings / providers / dashboards / inspection /
-      # quota / audit.db / license.key / server_guid) — persists across restarts.
+      # audit.db / license.key / server_guid) — persists across restarts.
       - gateway_state:/app/state
       # License hardware-fingerprint anchor. slim images have an empty
       # /etc/machine-id and the docker veth MAC is rejected as random, so the
@@ -108,7 +109,7 @@ services:
 
   caddy:
     image: caddy:2
-    container_name: rst-zabbix-caddy
+    container_name: rst-ai-copilot-for-zabbix-caddy
     restart: unless-stopped
     ports:
       - "80:80"

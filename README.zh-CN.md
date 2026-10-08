@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/reallysec/RST-Zabbix-AI-Copilot/releases"><img src="https://img.shields.io/github/v/release/reallysec/RST-Zabbix-AI-Copilot?label=release&color=D40000" alt="最新版本"></a>
+  <a href="https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/releases"><img src="https://img.shields.io/github/v/release/reallysec/RST-AI-Copilot-for-Zabbix?label=release&color=D40000" alt="最新版本"></a>
   <img src="https://img.shields.io/badge/免费-社区版-1BA9F5" alt="免费社区版">
   <img src="https://img.shields.io/badge/Zabbix-6.0%E2%80%937.4-D40000" alt="Zabbix 6.0 至 7.4">
   <img src="https://img.shields.io/badge/部署-Docker-2496ED?logo=docker&logoColor=white" alt="Docker 部署">
@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> · <b>简体中文</b> · <a href="https://reallysec.com/docs/zabbix-ai-copilot">文档</a> · <a href="https://github.com/reallysec/RST-Zabbix-AI-Copilot/releases">下载</a> · <a href="https://github.com/reallysec/RST-Zabbix-AI-Copilot/issues">反馈问题</a>
+  <a href="README.md">English</a> · <b>简体中文</b> · <a href="https://reallysec.com/docs/zabbix-ai-copilot">文档</a> · <a href="https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/releases">下载</a> · <a href="https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/issues">反馈问题</a>
 </p>
 
 ## 为什么选 RST AI Copilot for Zabbix
@@ -36,17 +36,17 @@
 一条命令安装：
 
 ```bash
-curl -fsSL https://github.com/reallysec/RST-Zabbix-AI-Copilot/releases/latest/download/install.sh | sudo bash
+curl -fsSL https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/releases/latest/download/install.sh | sudo bash
 ```
 
-脚本下载最新安装包，用签名的发版清单校验，解压到 `/opt/rst-zabbix-ai-copilot` 并运行 `deploy.sh`。所有版本是同一个安装包：不导入许可时即为免费的社区版，在**许可证**页面激活许可后原地解锁专业版或企业版。离线主机可以在另一台机器上加 `--download-only` 下载，再把安装包拷过去。
+脚本下载最新安装包，用签名的发版清单校验，解压到 `/opt/rst-ai-copilot-for-zabbix` 并运行 `deploy.sh`。所有版本是同一个安装包：不导入许可时即为免费的社区版，在**许可证**页面激活许可后原地解锁专业版或企业版。离线主机可以在另一台机器上加 `--download-only` 下载，再把安装包拷过去。
 
-也可以自己从 [Releases](https://github.com/reallysec/RST-Zabbix-AI-Copilot/releases) 下载：
+也可以自己从 [Releases](https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/releases) 下载：
 
 ```bash
-sha256sum -c RST-Zabbix-AI-Copilot-<版本>.tar.gz.sha256
-tar xzf RST-Zabbix-AI-Copilot-<版本>.tar.gz
-cd RST-Zabbix-AI-Copilot-<版本> && ./deploy.sh
+sha256sum -c RST-AI-Copilot-for-Zabbix-<版本>.tar.gz.sha256
+tar xzf RST-AI-Copilot-for-Zabbix-<版本>.tar.gz
+cd RST-AI-Copilot-for-Zabbix-<版本> && ./deploy.sh
 ```
 
 `deploy.sh` 会加载镜像、生成密钥和主机指纹、询问大模型和 Zabbix 端点，然后在 Caddy TLS 后面启动服务。网关不直接对外：主机上只有 Caddy 监听端口。服务就绪后打开 `https://<域名或IP>/v2/`。
@@ -56,6 +56,8 @@ cd RST-Zabbix-AI-Copilot-<版本> && ./deploy.sh
 **激活许可**（社区版跳过）：以管理员身份打开**许可证**页面。在线：粘贴许可密钥并激活，自动绑定本机（需要出站访问 `license.reallysec.com:443`）。离线（企业版）：复制主机指纹，到 [console.reallysec.com](https://console.reallysec.com) 或联系销售获取许可文件后导入。
 
 **升级**：网关会在设置页检查本仓库 Releases 上有没有更新的签名版本。下载后版本进入暂存，在主机上运行 `sudo ./deploy/rst-update.sh` 安装，带健康检查，失败自动回滚。
+
+**从 2.0.1 及更早升级**：2.0.2 起安装包、镜像和容器改了名，老网关无法在线升级到 2.0.2，需要手动升级一次：运行上面的安装命令（已有的 `/opt/rst-zabbix-ai-copilot` 安装会原地升级），或把安装包解压到原目录运行 `./deploy.sh` 并保留 `.env`。不要换目录：数据卷名和许可绑定的主机指纹都跟着目录走。之后照常在线更新。
 
 ## 功能
 
@@ -113,7 +115,7 @@ cd RST-Zabbix-AI-Copilot-<版本> && ./deploy.sh
 
 ## 支持
 
-- **问题和 Bug**：提交 [issue](https://github.com/reallysec/RST-Zabbix-AI-Copilot/issues)。
+- **问题和 Bug**：提交 [issue](https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/issues)。
 - **安全漏洞**：请勿公开提交 issue，按[安全策略](SECURITY.md)报告。
 
 ## 许可
