@@ -22,10 +22,14 @@
   <b>English</b> · <a href="README.zh-CN.md">简体中文</a> · <a href="https://reallysec.com/en/docs/zabbix-ai-copilot">Docs</a> · <a href="https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/releases">Download</a> · <a href="https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/issues">Report an issue</a>
 </p>
 
+<p align="center">
+  <img src=".github/assets/chat-result.en.png" alt="Smart query: question, Zabbix API call and result table" width="92%">
+</p>
+
 ## Why RST AI Copilot for Zabbix
 
 - **Works with the Zabbix you have.** One Docker gateway next to your existing Zabbix server (6.0 to 7.4). No new data store, no agents; it talks to the Zabbix JSON-RPC API with a token you control.
-- **Read-only first.** Queries go through a read-only API whitelist. Anything that changes Zabbix (acknowledging a problem, creating a trigger) is an explicit operator action, and generated triggers are created disabled. A host-group whitelist bounds what the model may see.
+- **Read-only first.** Queries go through a read-only API whitelist. Anything that changes Zabbix (acknowledging a problem, creating a trigger or a maintenance, running ping / traceroute) is an explicit operator action confirmed in a dialog, and generated triggers are created disabled. A host-group whitelist bounds what the model may see.
 - **Your data stays in your network.** Field masking runs before anything reaches the model. Point it at Volcengine Ark, any OpenAI-compatible endpoint, or a local vLLM / Ollama for fully offline operation.
 - **Every step is accountable.** Each login, query, model call and settings change is an audit event you can search.
 
@@ -39,7 +43,7 @@ Install with one command:
 curl -fsSL https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/releases/latest/download/install.sh | sudo bash
 ```
 
-The script downloads the latest bundle, checks it against the signed release manifest, unpacks it into `/opt/rst-ai-copilot-for-zabbix` and runs `deploy.sh`. There is one bundle for every edition: without a licence it runs as the free Community Edition, and activating a licence on the **License** page unlocks Professional or Enterprise in place. On an offline host, run it elsewhere with `--download-only` and carry the bundle over.
+The script downloads the latest bundle, checks it against the signed release manifest, unpacks it into `/opt/rst-ai-copilot-for-zabbix` and runs `deploy.sh`. There is one bundle for every edition: without a licence it runs as the free Community Edition, and activating a licence on the **Settings → License** page unlocks Professional or Enterprise in place. On an offline host, run it elsewhere with `--download-only` and carry the bundle over.
 
 Or download the bundle from [Releases](https://github.com/reallysec/RST-AI-Copilot-for-Zabbix/releases) yourself:
 
@@ -53,9 +57,9 @@ cd RST-AI-Copilot-for-Zabbix-<version> && ./deploy.sh
 
 By default the certificate comes from Caddy's internal CA, so the browser warns until you trust its root certificate. To use your own certificate, edit the `tls` line in `Caddyfile` (see the installation guide in the bundle, `docs/INSTALL.md`).
 
-**Activate a licence** (skip for Community): open **License** as admin. Online: paste the licence key and activate; it binds to this host (needs outbound `license.reallysec.com:443`). Offline (Enterprise): copy the host fingerprint, get a licence file for it from [console.reallysec.com](https://console.reallysec.com) or sales, and import it.
+**Activate a licence** (skip for Community): open **Settings → License** as admin. Online: paste the licence key and activate; it binds to this host (needs outbound `license.reallysec.com:443`). Offline (Enterprise): copy the host fingerprint, get a licence file for it from [console.reallysec.com](https://console.reallysec.com) or sales, and import it.
 
-**Updates**: the gateway checks this repository's Releases for a newer signed version (Settings). Downloading stages it; `sudo ./deploy/rst-update.sh` on the host installs it with a health check and automatic rollback.
+**Updates**: once a day the gateway checks this repository's Releases for a newer signed version (Settings). Downloading stages it; `sudo ./deploy/rst-update.sh` on the host installs it with a health check and automatic rollback.
 
 **Upgrading from 2.0.1 or earlier**: 2.0.2 renamed the bundle, image and containers, so older gateways cannot update online to it. Upgrade once by hand: run the install command above (an existing `/opt/rst-zabbix-ai-copilot` install is upgraded in place), or unpack the bundle into the existing directory and run `./deploy.sh`, keeping `.env`. Stay in the existing directory: it names the data volumes and holds the licence's host fingerprint. Online updates work again afterwards.
 
@@ -64,16 +68,30 @@ By default the certificate comes from Caddy's internal CA, so the browser warns 
 Everything below is in the free Community Edition (one user, one node, no model-call limit; you bring your own model).
 
 - **Smart query**: natural language to Zabbix API calls (problems, events, items, history, triggers), result tables and trend charts, multi-turn follow-ups.
-- **Live alerts**: Zabbix problem polling or a Zabbix webhook media type, a summary per problem, acknowledge from the copilot.
-- **Posture**: on-call overview of problems by severity, noisiest triggers and recent events.
-- **Context for the model**: item-key dictionary, runbook knowledge base (RAG), host inventory and topology.
-- **Scheduled inspections**: threshold, problem-summary and no-data checks with period-over-period deltas.
-- **Privacy controls**: field masking (cloud / private / offline) and per-task reasoning levels.
+- **Live problems**: Zabbix problem polling or a Zabbix webhook media type, a summary per problem, change signals, acknowledge from the copilot.
+- **Network posture and topology**: on-call overview of problems by severity and noisiest triggers; topology view with the fault's impact on downstream devices.
+- **Context for the model**: item-key dictionary, runbook knowledge base (RAG), monitoring-health baseline with device end-of-life, device inventory.
+- **Privacy controls**: field masking (cloud / private / offline), a host-group allowlist and per-task reasoning levels.
 - **Notifications**: Feishu, DingTalk, WeCom, Teams, Slack and email.
+- **Maintenance windows**: read-only list of the maintenances already in Zabbix.
+
+<table>
+  <tr>
+    <td width="50%"><img src=".github/assets/alerts.en.png" alt="Live problems"></td>
+    <td width="50%"><img src=".github/assets/topology.en.png" alt="Topology with remote diagnostics"></td>
+  </tr>
+</table>
 
 ## Professional and Enterprise
 
-Professional unlocks the AI engines: **alert batch triage** (collapse an alert storm to its root cause), **alert investigation** (agentic evidence gathering and fault troubleshooting), a **trigger copilot** (natural language to Zabbix trigger expressions, created disabled for review) and a **platform-ops copilot** (a check-up of the Zabbix server itself: queues, internal items, HA nodes, proxies), plus scheduled **operations reports** and more users. Enterprise adds organisation-scale integration. Upgrading is a licence import on the same install: no reinstall, data and host fingerprint are kept. A 14-day trial covers every Enterprise feature on one host.
+Professional unlocks the AI engines: **alert correlation** (collapse an alert storm to its root cause), **problem investigation** (agentic evidence gathering, remote ping / traceroute, investigation report), a **trigger and monitoring-config copilot** (trigger expressions created disabled for review, item keys, OIDs, templates, LLD, unsupported-item diagnosis), a **maintenance-window assistant** (one sentence to a maintenance draft, written to Zabbix only after you confirm) and a **platform checkup** (the Zabbix server itself: queues, pollers, caches, HA nodes, proxies, with an AI reading), plus **reports**, scheduled inspections and more users. Enterprise adds organisation-scale integration. Upgrading is a licence import on the same install: no reinstall, data and host fingerprint are kept. A 14-day trial covers every Enterprise feature on one host.
+
+<table>
+  <tr>
+    <td width="50%"><img src=".github/assets/triage.en.png" alt="Alert storm collapsed to its root cause"></td>
+    <td width="50%"><img src=".github/assets/maintenance.en.png" alt="Maintenance draft awaiting confirmation"></td>
+  </tr>
+</table>
 
 <details>
 <summary><b>Compare editions</b></summary>
@@ -82,11 +100,12 @@ Professional unlocks the AI engines: **alert batch triage** (collapse an alert s
 |---|:---:|:---:|:---:|
 | Everything under [Features](#features) | ✅ | ✅ | ✅ |
 | Users | 1 | per seat | as quoted |
-| **Alert batch triage**: alert-storm convergence and root cause | — | ✅ | ✅ |
-| **Alert investigation**: evidence gathering, timeline, affected hosts, actions | — | ✅ | ✅ |
-| **Trigger copilot**: threshold / aggregate / no-data trigger expressions | — | ✅ | ✅ |
-| **Platform-ops copilot**: AI read of the Zabbix server check-up | — | ✅ | ✅ |
-| **Operations reports**: daily / weekly / monthly, scheduled delivery | — | ✅ | ✅ |
+| **Alert correlation**: alert-storm convergence, root cause and AI scoring | — | ✅ | ✅ |
+| **Problem investigation**: evidence gathering, impact chain, remote ping / traceroute, investigation report | — | ✅ | ✅ |
+| **Triggers and monitoring config**: trigger expressions, item keys, OIDs, templates, LLD, unsupported-item diagnosis | — | ✅ | ✅ |
+| **Maintenance-window assistant**: draft, create and cancel maintenances | — | ✅ | ✅ |
+| **Platform checkup**: Zabbix server check-up with an AI reading | — | ✅ | ✅ |
+| **Reports and inspections**: operations, capacity and SLA reports, scheduled delivery, scheduled inspections | — | ✅ | ✅ |
 | Audit forwarding to an external SIEM (syslog / webhook) | — | — | ✅ |
 | Multi-provider LLM failover | — | — | ✅ |
 | OIDC single sign-on / enterprise identity | — | — | ✅ |
@@ -95,6 +114,10 @@ Professional unlocks the AI engines: **alert batch triage** (collapse an alert s
 | Model calls | unlimited | unlimited | unlimited |
 
 Details and pricing: [editions](https://reallysec.com/en/docs/zabbix-ai-copilot/editions). Trials and licences: [console.reallysec.com](https://console.reallysec.com).
+
+<p align="center">
+  <img src=".github/assets/investigation-report.en.png" alt="Problem investigation report" width="92%">
+</p>
 
 </details>
 
