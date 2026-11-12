@@ -35,7 +35,7 @@ services:
     # Tag is installer-managed: deploy/rst-update.sh writes GATEWAY_IMAGE_TAG into
     # .env on a health-gated release install / rollback. The default here is the
     # release version source of truth (scripts/build-release.sh reads it).
-    image: rst-ai-copilot-for-zabbix-gateway:${GATEWAY_IMAGE_TAG:-2.0.4}
+    image: rst-ai-copilot-for-zabbix-gateway:${GATEWAY_IMAGE_TAG:-2.1.0}
     container_name: rst-ai-copilot-for-zabbix-gateway
     restart: unless-stopped
     # Resource ceiling so one runaway request / memory leak can't starve the
@@ -75,7 +75,7 @@ services:
       # ── Online update (content packs + image releases) ──
       # Running version: the heartbeat reports it, and release_store only offers
       # a release newer than this. Follows GATEWAY_IMAGE_TAG (rst-update.sh bumps it).
-      - APP_VERSION=${APP_VERSION:-${GATEWAY_IMAGE_TAG:-2.0.4}}
+      - APP_VERSION=${APP_VERSION:-${GATEWAY_IMAGE_TAG:-2.1.0}}
       # Release staging — a HOST bind mount (see volumes) so the host-side
       # deploy/rst-update.sh reads what the gateway downloaded and verified.
       - RST_RELEASE_DIR=/app/release
@@ -106,6 +106,9 @@ services:
       # container) stages verified downloads here; rst-update.sh (on the host,
       # default RELEASE_DIR=./release) installs from it.
       - ./release:/app/release
+      # One-click upgrade: shared with the host updater (rst-zabbix-updater), which
+      # reads request.json from here and reports progress in status.json.
+      - ./updater:/var/lib/rst-zabbix/updater
 
   caddy:
     image: caddy:2
