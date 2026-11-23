@@ -21,6 +21,10 @@ set -euo pipefail
 
 PRODUCT="RST AI Copilot for Zabbix"
 STEM="RST-AI-Copilot-for-Zabbix"                     # archive: <STEM>-<version>.tar.gz
+# Releases before the 2.0.2 rename are archived as <LEGACY_STEM>-<version>.tar.gz. The
+# signed manifest pins only the sha256, so those archives verify as they are.
+LEGACY_STEM="RST-Zabbix-AI-Copilot"
+LEGACY_STEM_BEFORE="${RST_LEGACY_STEM_BEFORE:-2.0.2}"  # overridable for the tests
 GH_REPO="reallysec/RST-AI-Copilot-for-Zabbix"
 DIR="/opt/rst-ai-copilot-for-zabbix"
 # Installs from before the 2.0.2 rename live here. Keep upgrading them in place: the
@@ -196,6 +200,7 @@ get_from() {  # github|cn
   verify_token "$V"
   base="$(dl_base "$1" "$V")"
   ARCHIVE="$STEM-$V.tar.gz"
+  newer "$LEGACY_STEM_BEFORE" "$V" && ARCHIVE="$LEGACY_STEM-$V.tar.gz"
   say "== $PRODUCT $V: signed manifest OK; downloading from $base"
   # No .sha256 download: it comes from the same host as the archive, so it proves
   # nothing the signed sha256 doesn't.
@@ -219,7 +224,7 @@ fetch_bundle() {
 
 if [ "$DOWNLOAD_ONLY" = 1 ]; then
   fetch_bundle
-  say "== saved $PWD/$ARCHIVE; on the target host: tar xzf $ARCHIVE && cd $STEM-$VERSION && ./deploy.sh"
+  say "== saved $PWD/$ARCHIVE; on the target host: tar xzf $ARCHIVE && cd ${ARCHIVE%.tar.gz} && ./deploy.sh"
   exit 0
 fi
 
